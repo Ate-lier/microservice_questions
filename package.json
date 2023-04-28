@@ -1,0 +1,43 @@
+{
+  "name": "microservice_questions",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "build": "tsc",
+    "fetch": "bash CSV/fetch.sh",
+    "fetchAll": "bash CSV/fetchAll.sh",
+    "etl": "node dist/ETL/index.js",
+    "server": "node dist/index.js",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ate-lier/microservice_questions.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Ate-lier/microservice_questions/issues"
+  },
+  "homepage": "https://github.com/Ate-lier/microservice_questions#readme",
+  "dependencies": {
+    "@types/node": "^18.15.11",
+    "compression": "^1.7.4",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "mongodb": "^5.2.0",
+    "pm2": "^5.3.0"
+  },
+  "devDependencies": {
+    "@tsconfig/node18": "^1.0.1",
+    "@types/compression": "^1.7.2",
+    "@types/express": "^4.17.17",
+    "@types/jest": "^29.5.1",
+    "@types/supertest": "^2.0.12",
+    "jest": "^29.5.0",
+    "supertest": "^6.3.3",
+    "ts-jest": "^29.1.0",
+    "typescript": "^5.0.4"
+  }
+}
