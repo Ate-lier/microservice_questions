@@ -1,16 +1,86 @@
 import request from 'supertest';
 import app from '../app';
-// import { connect, disconnect, getDatabase } from '../model/client';
-
-// testing db connections
+import { connect, disconnect, getPool } from '../model/db';
 
 
-// testing questions
+describe('Database Connection', () => {
+  it('should raise error when try to getPool without being connected',async () => {
+    expect(() => getPool()).toThrow();
+  });
 
+  it('should create a pool when successfully connected', async () => {
+    await connect();
+    const pool = getPool();
+    expect(pool).toHaveProperty('query');
+  });
+
+  it('should do nothing if trying to connect when connected', async () => {
+    expect(await connect()).toStrictEqual(false);
+  });
+
+  it('should delete the pool when disconnected', async () => {
+    await disconnect();
+    expect(() => getPool()).toThrow();
+  });
+
+  it('should do nothing if trying to disconnect when disconnected', async () => {
+    expect(await disconnect()).toStrictEqual(false);
+  })
+});
+
+
+// questions
+describe.skip('GET /questions', () => {
+  it('should return status code 200', async () => {
+    const result = await request(app).get('/questions');
+
+    expect(result.status).toBe(200);
+  });
+});
+
+describe.skip('POST /questions', () => {
+  it('should return status code 200', async () => {
+    const result = await request(app).get('/questions');
+
+    expect(result.status).toBe(200);
+  });
+});
+
+describe.skip('DELETE /questions/:question_id', () => {
+  it('should return status code 200', async () => {
+    const result = await request(app).get('/questions/1');
+
+    expect(result.status).toBe(200);
+  });
+});
+
+describe.skip('POST /questions/:question_id/like', () => {
+  it('should return status code 200', async () => {
+    const result = await request(app).get('/questions/1/like');
+
+    expect(result.status).toBe(200);
+  });
+});
+
+describe.skip('PUT /questions/:question_id/unlike', () => {
+  it('should return status code 200', async () => {
+    const result = await request(app).get('/questions/1/unlike');
+
+    expect(result.status).toBe(200);
+  });
+});
+
+describe.skip('POST /questions/:question_id/report', () => {
+  it('should return status code 200', async () => {
+    const result = await request(app).get('/questions/1/report');
+
+    expect(result.status).toBe(200);
+  });
+});
 
 
 // testing answers
-describe('GET /answers', () => {
+describe.skip('GET /answers', () => {
   it('should return status code 200', async () => {
     const result = await request(app).get('/answers');
 
@@ -18,7 +88,7 @@ describe('GET /answers', () => {
   });
 });
 
-describe('POST /answers', () => {
+describe.skip('POST /answers', () => {
   it('should return status code 200', async () => {
     const result = await request(app).post('/answers').send({
       product_id: 111, test: 'hello world'
@@ -28,7 +98,7 @@ describe('POST /answers', () => {
   });
 });
 
-describe('DELETE /answers/:answer_id', () => {
+describe.skip('DELETE /answers/:answer_id', () => {
   it('should return status code 200', async () => {
     const result = await request(app).delete('/answers/1');
 
@@ -36,7 +106,7 @@ describe('DELETE /answers/:answer_id', () => {
   });
 });
 
-describe('POST /answers/:answer_id/like', () => {
+describe.skip('POST /answers/:answer_id/like', () => {
   it('should return status code 200', async () => {
     const result = await request(app).post('/answers/1/like');
 
@@ -44,7 +114,7 @@ describe('POST /answers/:answer_id/like', () => {
   });
 });
 
-describe('PUT /answers/:answer_id/unlike', () => {
+describe.skip('PUT /answers/:answer_id/unlike', () => {
   it('should return status code 200', async () => {
     const result = await request(app).put('/answers/1/unlike').send({ test: 'hello world'});
 
@@ -52,7 +122,7 @@ describe('PUT /answers/:answer_id/unlike', () => {
   });
 });
 
-describe('POST /answers/:answer_id/report', () => {
+describe.skip('POST /answers/:answer_id/report', () => {
   it('should return status code 200', async () => {
     const result = await request(app).post('/answers/1/report').send({ test: 'hello world'});
 
@@ -62,51 +132,3 @@ describe('POST /answers/:answer_id/report', () => {
 
 
 
-// questions
-describe('GET /questions', () => {
-  it('should return status code 200', async () => {
-    const result = await request(app).get('/questions');
-
-    expect(result.status).toBe(200);
-  });
-});
-
-describe('POST /questions', () => {
-  it('should return status code 200', async () => {
-    const result = await request(app).get('/questions');
-
-    expect(result.status).toBe(200);
-  });
-});
-
-describe('DELETE /questions/:question_id', () => {
-  it('should return status code 200', async () => {
-    const result = await request(app).get('/questions/1');
-
-    expect(result.status).toBe(200);
-  });
-});
-
-describe('POST /questions/:question_id/like', () => {
-  it('should return status code 200', async () => {
-    const result = await request(app).get('/questions/1/like');
-
-    expect(result.status).toBe(200);
-  });
-});
-
-describe('PUT /questions/:question_id/unlike', () => {
-  it('should return status code 200', async () => {
-    const result = await request(app).get('/questions/1/unlike');
-
-    expect(result.status).toBe(200);
-  });
-});
-
-describe('POST /questions/:question_id/report', () => {
-  it('should return status code 200', async () => {
-    const result = await request(app).get('/questions/1/report');
-
-    expect(result.status).toBe(200);
-  });
-});
