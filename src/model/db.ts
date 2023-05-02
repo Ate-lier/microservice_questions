@@ -2,12 +2,15 @@ import mysql, { Pool } from 'mysql2/promise';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
+console.log(process.env.DB_HOST);
+
 // this be unqiue to each dot env configuration
 const configuration = {
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  database: process.env.DB_DATABASE
+  database: process.env.DB_DATABASE,
+  // multipleStatements: true
 };
 
 let pool: Pool | null = null;
