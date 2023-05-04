@@ -8,8 +8,14 @@ async function test() {
     database: 'testing'
   });
 
-  const result = await connection.query('delete from majors where id > 8');
-  console.log(result);
+  try {
+    const result = await connection.query('select * from majors where id = 20');
+    console.log(result);
+  } catch (err) {
+    console.log(err.sqlMessage);
+    await connection.end();
+  }
+
   await connection.end();
 }
 

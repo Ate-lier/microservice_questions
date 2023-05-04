@@ -2,8 +2,6 @@ import mysql, { Pool } from 'mysql2/promise';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-console.log(process.env.DB_HOST);
-
 // this be unqiue to each dot env configuration
 const configuration = {
   host: process.env.DB_HOST,
@@ -19,7 +17,7 @@ export async function connect(): Promise<any> {
   if (pool) return false;
 
   try {
-    pool = await mysql.createPool(configuration);
+    pool = mysql.createPool(configuration);
   } catch (err) {
     throw new Error('MySQL Connection Error');
   }

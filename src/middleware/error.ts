@@ -9,14 +9,6 @@ export class HttpError extends Error {
   }
 }
 
-/*
-export class InvalidRequestError extends HttpError {
-  constructor(message: string) {
-    super(message, 401)
-  }
-}
-*/
-
 // Error Handler Middleware for all routes
 export function errorHandler(err: HttpError, req: Request, res: Response, next: NextFunction) {
   console.log(err);

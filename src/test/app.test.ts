@@ -30,25 +30,17 @@ describe('Database Connection', () => {
 
 
 // questions
+describe.skip('POST /questions', () => {
+  const validPostData = {
+    product_id: 1,
+    body: 'test',
+    
+  }
+});
+
 describe.skip('GET /questions', () => {
   it('should return status code 200', async () => {
     const result = await request(app).get('/questions');
-
-    expect(result.status).toBe(200);
-  });
-});
-
-describe.skip('POST /questions', () => {
-  it('should return status code 200', async () => {
-    const result = await request(app).get('/questions');
-
-    expect(result.status).toBe(200);
-  });
-});
-
-describe.skip('DELETE /questions/:question_id', () => {
-  it('should return status code 200', async () => {
-    const result = await request(app).get('/questions/1');
 
     expect(result.status).toBe(200);
   });
@@ -77,6 +69,15 @@ describe.skip('POST /questions/:question_id/report', () => {
     expect(result.status).toBe(200);
   });
 });
+
+describe.skip('DELETE /questions/:question_id', () => {
+  it('should return status code 200', async () => {
+    const result = await request(app).get('/questions/1');
+
+    expect(result.status).toBe(200);
+  });
+});
+
 
 
 // testing answers
