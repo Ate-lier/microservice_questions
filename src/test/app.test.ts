@@ -35,7 +35,11 @@ describe.skip('POST /questions', () => {
     product_id: 1,
     body: 'test',
     
-  }
+  };
+
+  const invalidPostData = {
+
+  };
 });
 
 describe.skip('GET /questions', () => {

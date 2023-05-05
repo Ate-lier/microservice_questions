@@ -9,7 +9,7 @@ async function test() {
   });
 
   try {
-    const result = await connection.query('select * from majors where id = 20');
+    const result = await connection.query('select * from majors where ide = 20');
     console.log(result);
   } catch (err) {
     console.log(err.sqlMessage);

@@ -4,12 +4,12 @@ import { ResultSetHeader, RowDataPacket } from 'mysql2';
 
 const pool = getPool();
 
-// it is an error when no rows are affected after write operations
-function writeValidator(result: ResultSetHeader): void {
-  if (result.affectedRows === 0) {
-    throw new Error('No rows were affected');
-  }
-}
+// // it is an error when no rows are affected after write operations
+// function writeValidator(result: ResultSetHeader): void {
+//   if (result.affectedRows === 0) {
+//     throw new Error('No rows were affected');
+//   }
+// }
 
 interface CreateQuestionParams {
   product_id: number,
@@ -23,7 +23,7 @@ export async function createQuestion(params: CreateQuestionParams): Promise<any>
   const queryString = "INSERT INTO questions SET ?";
   const [result] = await pool.query<ResultSetHeader>(queryString, params);
   
-  writeValidator(result);
+  // writeValidator(result);
   return result;
 }
 
@@ -44,12 +44,25 @@ export async function readQuestions(params: readQuestionsParams): Promise<any> {
     [product_id, sortBy, pageLimit, pageOffset]
   );
 
+  return questions;
+}
+
+// Count number of questions for 1 product
+export async function countQuestions(product_id: number): Promise<any> {
   const [questionsCount] = await pool.query<RowDataPacket[]>(
     `SELECT COUNT(*) AS total FROM questions WHERE product_id = ?`,
     [product_id]
   );
 
-  return { questions, questionsCount: questionsCount[0].total };
+  return questionsCount[0].total;
+}
+
+// Read 1 question by question_id
+export async function readQuestion(id: number): Promise<any> {
+  const queryString = 'SELECT FROM questions WHERE id = ?';
+  const [result] = await pool.query<RowDataPacket[]>(queryString, id);
+
+  return result[0] ?? null;
 }
 
 // Delete 1 row
@@ -57,7 +70,7 @@ export async function deleteQuestion(id: number): Promise<any> {
   const queryString = 'DELETE FROM questions WHERE id = ?';
   const [result] = await pool.query<ResultSetHeader>(queryString, id);
 
-  writeValidator(result);
+  // writeValidator(result);
   return result;
 }
 
@@ -66,7 +79,7 @@ export async function updateQuestionHelpful(id: number, isUpvote: boolean): Prom
   const queryString = 'UPDATE questions SET helpful = helpful + ? WHERE id = ?';
   const [result] = await pool.query<ResultSetHeader>(queryString, [isUpvote, id]);
 
-  writeValidator(result);
+  // writeValidator(result);
   return result;
 }
 
@@ -75,7 +88,10 @@ export async function updateQuestionReported(id: number): Promise<any> {
   const queryString = 'UPDATE questions SET reported = reported + 1 WHERE id = ?';
   const [result] = await pool.query<ResultSetHeader>(queryString, id);
 
-  writeValidator(result);
+  // writeValidator(result);
   return result;
 }
+
+
+// Now let's handle the error in the middleware side, model should not contain any complex business logic
 
