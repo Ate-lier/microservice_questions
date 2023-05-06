@@ -35,8 +35,11 @@ export async function disconnect(): Promise<any> {
 }
 
 export function getPool(): Pool {
-  if (!pool) throw new Error('Database is not connected');
+  if (!pool) {
+    throw new Error('Database is not connected');
+  }
 
   return pool;
 }
+
 

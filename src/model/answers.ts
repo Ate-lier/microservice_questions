@@ -1,6 +1,6 @@
 import { getPool } from './db';
 
-const pool = getPool();
+// const pool = getPool();
 // CREATE TABLE answers (
 //   id INT AUTO_INCREMENT PRIMARY KEY,
 //   question_id INT NOT NULL,
@@ -24,7 +24,7 @@ interface CreateAnswerParams {
 
 export async function createAnswer(params: CreateAnswerParams): Promise<any> {
   const queryString = "INSERT INTO answers SET ?";
-  const result = await pool.query(queryString, params);
+  const result = await getPool().query(queryString, params);
   console.log(result);
 }
 
@@ -40,12 +40,12 @@ export async function readAnswers(params: readAnswersParams): Promise<any> {
   const { product_id, sortBy = 'helpful', currentPage = 1, pageLimit = 5 } = params;
   const pageOffset = (currentPage - 1) * pageLimit;
 
-  const [answers] = await pool.query(
+  const [answers] = await getPool().query(
     `SELECT * FROM answers WHERE product_id = ? ORDER BY ? LIMIT ? OFFSET ?`,
     [product_id, sortBy, pageLimit, pageOffset]
   );
 
-  const [answersCount] = await pool.query(
+  const [answersCount] = await getPool().query(
     `SELECT COUNT(*) FROM answers WHERE product_id = ?`,
     [product_id]
   );
@@ -56,5 +56,5 @@ export async function readAnswers(params: readAnswersParams): Promise<any> {
 
 
 export async function deleteAnswer(id: number): Promise<any> {
-  await pool.query('DELETE FROM answers WHERE id = ?', id);
+  await getPool().query('DELETE FROM answers WHERE id = ?', id);
 }

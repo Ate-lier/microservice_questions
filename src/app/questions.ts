@@ -10,12 +10,12 @@ import {
 
 const router = Router();
 
-router.get('/questions', getQuestionsValidation, getQuestions);
-router.post('/questions', postQuestionValidation, postQuestion);
-router.delete('/questions/:question_id', deleteQuestionValidation, deleteQuestion);
-router.patch('/questions/:question_id/like', likeQuestionValidation, likeQuestion);
-router.patch('/questions/:question_id/unlike', unlikeQuestionValidation, unlikeQuestion);
-router.patch('/questions/:question_id/report', reportQuestionValidation, reportQuestion);
+router.get('/', getQuestionsValidation, getQuestions);
+router.post('/', postQuestionValidation, postQuestion);
+router.delete('/:question_id', deleteQuestionValidation, deleteQuestion);
+router.patch('/:question_id/like', likeQuestionValidation, likeQuestion);
+router.patch('/:question_id/unlike', unlikeQuestionValidation, unlikeQuestion);
+router.patch('/:question_id/report', reportQuestionValidation, reportQuestion);
 
 // idempotent update
 

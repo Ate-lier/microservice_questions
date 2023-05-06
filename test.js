@@ -3,13 +3,13 @@ const mysql = require('mysql2/promise');
 async function test() {
   const connection = await mysql.createConnection({
     host: '127.0.0.1',
-    user: 'shen',
-    password: 'wyw537537',
-    database: 'testing'
+    user: 'root',
+    password: '',
+    database: 'atelier'
   });
 
   try {
-    const result = await connection.query('select * from majors where ide = 20');
+    const result = await connection.query('select * from questions where id < 5');
     console.log(result);
   } catch (err) {
     console.log(err.sqlMessage);

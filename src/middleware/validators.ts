@@ -89,7 +89,10 @@ export const postQuestionValidation = [
 export const getQuestionsValidation = [
   idValidator('product_id'),
   sortByValidator(),
-  
+  currentPageValidator(),
+  pageLimitValidator(),
+  ultimateValidator
+
 ];
 
 export const deleteQuestionValidation = [
