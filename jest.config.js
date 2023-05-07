@@ -3,12 +3,16 @@ module.exports = {
   testEnvironment: "node",
   testMatch: ['**/test/**/*.test.ts'],
 
+  // suppress console.log
+  //silent: true,
+  cache: false,
+
   // test coverage
   collectCoverage: true,
 
   // only test these three files
   collectCoverageFrom: [
-    'src/server/**/*.ts',
+    'src/app/**/*.ts',
     'src/model/**/*.ts',
     'src/middleware/**/*.ts'
   ],
