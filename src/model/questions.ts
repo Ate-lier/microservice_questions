@@ -14,18 +14,24 @@ import { ResultSetHeader, RowDataPacket } from 'mysql2';
 
 interface readQuestionsParams {
   product_id: number,
-  sortBy?: string,
-  currentPage?: number,
-  pageLimit?: number
+  sortBy: string,
+  currentPage: number,
+  pageLimit: number
 }
 
 // Read 1 or more questions based on input parameters
 export async function readQuestions(params: readQuestionsParams): Promise<any> {
-  const { product_id, sortBy = 'helpful', currentPage = 1, pageLimit = 5 } = params;
+  const { product_id, sortBy, currentPage, pageLimit} = params;
   const pageOffset = (currentPage - 1) * pageLimit;
 
+  // let sortClause = sortBy + 'DESC';
+
   const [questions] = await getPool().query<RowDataPacket[]>(
-    `SELECT * FROM questions WHERE product_id = ? ORDER BY ? LIMIT ? OFFSET ?`,
+    `SELECT * FROM questions WHERE
+    product_id = ?
+    ORDER BY ?? DESC
+    LIMIT ?
+    OFFSET ?`,
     [product_id, sortBy, pageLimit, pageOffset]
   );
 
@@ -78,7 +84,7 @@ export async function deleteQuestion(id: number): Promise<any> {
 // Add 1 to or minus 1 from helpful column for a single row
 export async function updateQuestionHelpful(id: number, isUpvote: boolean): Promise<any> {
   const queryString = 'UPDATE questions SET helpful = helpful + ? WHERE id = ?';
-  const [result] = await getPool().query<ResultSetHeader>(queryString, [isUpvote, id]);
+  const [result] = await getPool().query<ResultSetHeader>(queryString, [isUpvote ? 1 : -1, id]);
 
   // writeValidator(result);
   return result;

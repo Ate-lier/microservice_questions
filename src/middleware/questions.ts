@@ -21,7 +21,7 @@ function errorChecker(err: unknown) {
 
 export async function getQuestions(req: Request, res: Response, next: NextFunction): Promise<any> {
   try {
-    const { product_id, sortBy, currentPage, pageLimit } = req.query;
+    const { product_id, sortBy = 'helpful', currentPage = 1, pageLimit = 5} = req.query;
     const params = {
       product_id: Number(product_id),
       sortBy: sortBy as string,

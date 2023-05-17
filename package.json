@@ -7,7 +7,7 @@
     "fetch": "bash CSV/fetch.sh",
     "fetchAll": "bash CSV/fetchAll.sh",
     "etl": "node dist/ETL/index.js",
-    "server": "node dist/index.js",
+    "server": "node dist/server.js",
     "test": "jest --no-cache"
   },
   "repository": {

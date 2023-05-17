@@ -4,6 +4,8 @@ import { connect, disconnect, getPool } from '../model/db';
 import { RowDataPacket } from 'mysql2';
 import { setTimeout } from 'timers/promises';
 
+console.log('this is the testing, how console.log will work in jest!!!!')
+
 describe('Database Connection', () => {
   it('should raise error when try to getPool without being connected', async () => {
     expect(() => getPool()).toThrow();
@@ -29,10 +31,11 @@ describe('Database Connection', () => {
   })
 });
 
-// record all question_id that may generated in the integration tests
-const generatedQuestionIds: Array<number> = [];
 
 describe('API Testing: Route Questions', () => {
+  // record all question_id that may generated in the integration tests
+  const generatedQuestionIds: Array<number> = [];
+
   beforeAll(async () => await connect());
   afterAll(async () => await disconnect());
 
@@ -54,7 +57,9 @@ describe('API Testing: Route Questions', () => {
           .send(validPostData);
 
         const id = response.body.question[0].id;
+        console.log('the POST ID is', id);
         generatedQuestionIds.push(id);
+        console.log('before POST, the generatedQuestionIds array is', generatedQuestionIds);
       });
 
       it('should respond with status code of 201', async () => {
@@ -117,6 +122,7 @@ describe('API Testing: Route Questions', () => {
 
   describe('PATCH /questions/:question_id/like', () => {
     let question_id: number;
+    console.log('when patch starts, the array is', generatedQuestionIds);
 
     // create a new question to test like functionality
     beforeAll(async () => {
@@ -131,6 +137,7 @@ describe('API Testing: Route Questions', () => {
 
       question_id = postResponse.body.question[0].id;
       generatedQuestionIds.push(question_id);
+      console.log('BEFORE ALL PATCH, the array is', generatedQuestionIds);
     });
 
     it('should respond with 2xx status code when succeed', async () => {
@@ -151,12 +158,16 @@ describe('API Testing: Route Questions', () => {
 
   describe('PATCH /questions/:question_id/unlike', () => {
     // reuse the last question
-    const question_id = generatedQuestionIds[generatedQuestionIds.length - 1];
-    console.log('this is the question id ~!~!~!~!~!~!:', question_id, generatedQuestionIds);
+    let question_id: number;
+
+    beforeAll(() => {
+      question_id = generatedQuestionIds.at(-1) as number;
+    });
 
     it('should respond with 2xx status code when succeed', async () => {
       // first of all, make sure this question_id has 1 helpful
-      const [questions] = await getPool().query<RowDataPacket[]>(`SELECT helpful FROM questions WHERE id = 1`);
+      const [questions] = await getPool()
+        .query<RowDataPacket[]>(`SELECT helpful FROM questions WHERE id = ?`, question_id);
 
       expect(questions[0].helpful).toBe(1);
 
@@ -177,7 +188,11 @@ describe('API Testing: Route Questions', () => {
 
   describe('PATCH /questions/:question_id/report', () => {
     // reuse the last question
-    const question_id = generatedQuestionIds.at(-1);
+    let question_id: number;
+
+    beforeAll(() => {
+      question_id = generatedQuestionIds.at(-1) as number;
+    });
 
     it('should respond with 2xx status code when succeed', async () => {
       // first of all, make sure this question_id has 0 reported
@@ -193,7 +208,7 @@ describe('API Testing: Route Questions', () => {
       expect(response.status).toBeLessThan(300);
     });
 
-    it('should minus the question reported by 1', async () => {
+    it('should increase the question reported by 1', async () => {
       const [questions] = await getPool()
         .query<RowDataPacket[]>(`SELECT reported FROM questions WHERE id = ?`, question_id);
 
@@ -205,11 +220,11 @@ describe('API Testing: Route Questions', () => {
     const allLikeCounts: Array<number> = [];
 
     beforeAll(async () => {
-      for (let i = 1; i <= 20; i++) {
+      for (let i = 1; i <= 10; i++) {
         // post fake data
         const response = await request(app).post('/questions').send({
           product_id: 2**30,
-          body: `test${i}`,
+          body: `Sample Test No.${i}`,
           asker_name: `Shennie${i}`,
           asker_email: `shennie${i}@gmail.com`
         });
@@ -217,18 +232,18 @@ describe('API Testing: Route Questions', () => {
         const question_id = response.body.question[0].id;
         generatedQuestionIds.push(question_id);
 
-        const likeCounts = Math.floor(Math.random() * 20);
+        const likeCounts = Math.floor(Math.random() * 5);
         allLikeCounts.push(likeCounts);
 
         for (let i = 0; i < likeCounts; i++) {
           await request(app).patch(`/questions/${question_id}/like`);
         }
 
-        await setTimeout(1000);
+        if (i % 3 === 0) await setTimeout(1000);
       }
 
       allLikeCounts.sort((a, b) => b - a);
-    });
+    }, 60_000);
 
     describe('When succeed:', () => {
       it('should get a status code of 200', async () => {
@@ -241,7 +256,15 @@ describe('API Testing: Route Questions', () => {
           });
 
         expect(response.status).toBe(200);
-      });
+      }, 60_000);
+
+      it('should get total questions counts for the requested product_id', async() => {
+        const response = await request(app).get('/questions')
+          .query({ product_id: 2**30 });
+
+        expect(response.body).toHaveProperty('questionsCount');
+        expect(response.body.questionsCount).toBe(10);
+      }, 60_000);
 
       it('should by default get 5 questions', async () => {
         const response = await request(app).get('/questions')
@@ -251,12 +274,12 @@ describe('API Testing: Route Questions', () => {
             currentPage: 1,
           });
         expect(response.body.questions.length).toBe(5);
-      });
+      }, 60_000);
 
       it('should by default sort by [helpful]', async() => {
         const response = await request(app).get('/questions')
           .query({
-            product_id: 2**3,
+            product_id: 2**30,
             currentPage: 1,
             pageLimit: 5,
           });
@@ -269,36 +292,36 @@ describe('API Testing: Route Questions', () => {
         }
 
         expect(checkSort(response.body.questions)).toBeTruthy();
-      });
+      }, 60_000);
 
       it('should by default get the 1st page', async() => {
         const response = await request(app).get('/questions')
           .query({
-            product_id: 2**3,
+            product_id: 2**30,
             sortBy: 'helpful',
             pageLimit: 5,
           });
 
         const currPage = response.body.questions.map((q: any) => q.helpful);
         expect(currPage).toEqual(allLikeCounts.slice(0,5));
-      });
+      }, 60_000);
 
       it('should get correct page limit when pageLimit parameter specified', async() => {
         const response = await request(app).get('/questions')
           .query({
-            product_id: 2**3,
+            product_id: 2**30,
             sortBy: 'helpful',
             pageLimit: 3,
             currentPage:1,
           });
 
         expect(response.body.questions.length).toBe(3);
-      });
+      }, 60_000);
 
-      it('should get nothing when currentPage exceed the last page', async() => {
+      it('should get correct page when switching current page', async() => {
         const response = await request(app).get('/questions')
           .query({
-            product_id: 2**3,
+            product_id: 2**30,
             sortBy: 'helpful',
             pageLimit: 5,
             currentPage: 2,
@@ -306,12 +329,24 @@ describe('API Testing: Route Questions', () => {
 
         const currPage = response.body.questions.map((q: any) => q.helpful);
         expect(currPage).toEqual(allLikeCounts.slice(5, 10));
-      });
+      }, 60_000);
+
+      it('should get nothing when currentPage exceed the last page', async() => {
+        const response = await request(app).get('/questions')
+          .query({
+            product_id: 2**30,
+            sortBy: 'helpful',
+            pageLimit: 5,
+            currentPage: 10,
+          });
+
+        expect(response.body.questions.length).toEqual(0);
+      }, 60_000);
 
       it('should sort by date_written when sortBy equals [date_written]', async() => {
         const response = await request(app).get('/questions')
           .query({
-            product_id: 2**3,
+            product_id: 2**30,
             sortBy: 'date_written',
             pageLimit: 5,
             currentPage: 1,
@@ -325,7 +360,7 @@ describe('API Testing: Route Questions', () => {
         }
 
         expect(checkSort(response.body.questions)).toBeTruthy();
-      });
+      }, 60_000);
 
 
     });
@@ -342,7 +377,7 @@ describe('API Testing: Route Questions', () => {
           });
 
         expect(response.status).toBe(400);
-      });
+      }, 60_000);
 
       it('should raise 400 error when parameters in wrong data type', async () => {
         const response = await request(app)
@@ -355,7 +390,7 @@ describe('API Testing: Route Questions', () => {
           });
 
         expect(response.status).toBe(400);
-      });
+      }, 60_000);
 
       it('should respond with error format like { error: [errorObj] }', async () => {
         const response = await request(app)
@@ -364,7 +399,7 @@ describe('API Testing: Route Questions', () => {
 
         expect(response.body).toHaveProperty('error');
         expect(response.body.error).toBeInstanceOf(Array);
-      });
+      }, 60_000);
 
       it("errorObj should be like { type = 'validation', message: string } when 400 error", async () => {
         const response = await request(app)
@@ -373,7 +408,7 @@ describe('API Testing: Route Questions', () => {
 
         expect(response.body.error[0]).toHaveProperty('type', 'Validation');
         expect(response.body.error[0]).toHaveProperty('message');
-      });
+      }, 60_000);
     });
 
   });

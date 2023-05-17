@@ -3,8 +3,8 @@ const mysql = require('mysql2/promise');
 async function test() {
   const connection = await mysql.createConnection({
     host: '127.0.0.1',
-    user: 'root',
-    password: '',
+    user: 'yuheng',
+    password: '12345',
     database: 'atelier'
   });
 

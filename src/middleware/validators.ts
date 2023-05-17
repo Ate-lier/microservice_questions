@@ -92,7 +92,6 @@ export const getQuestionsValidation = [
   currentPageValidator(),
   pageLimitValidator(),
   ultimateValidator
-
 ];
 
 export const deleteQuestionValidation = [
