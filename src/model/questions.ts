@@ -1,4 +1,3 @@
-import { write, writev } from 'fs';
 import { getPool } from './db';
 import { ResultSetHeader, RowDataPacket } from 'mysql2';
 
@@ -42,7 +41,7 @@ export async function readQuestions(params: readQuestionsParams): Promise<any> {
 export async function countQuestions(product_id: number): Promise<any> {
   const [questionsCount] = await getPool().query<RowDataPacket[]>(
     `SELECT COUNT(*) AS total FROM questions WHERE product_id = ?`,
-    [product_id]
+    product_id
   );
 
   return questionsCount[0].total;

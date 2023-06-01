@@ -78,6 +78,8 @@ function pageLimitValidator() {
     .withMessage('Page limit must be a positive integer')
 }
 
+
+// QUESTION ROUTE
 export const postQuestionValidation = [
   idValidator('product_id'),
   bodyValidator(),
@@ -111,5 +113,44 @@ export const unlikeQuestionValidation = [
 
 export const reportQuestionValidation = [
   idValidator('question_id'),
+  ultimateValidator
+];
+
+
+
+// ANSWER ROUTE
+export const postAnswerValidation = [
+  idValidator('question_id'),
+  bodyValidator(),
+  nameValidator('answerer_name'),
+  emailValidator('answerer_email'),
+  ultimateValidator
+];
+
+export const getAnswersValidation = [
+  idValidator('question_id'),
+  sortByValidator(),
+  currentPageValidator(),
+  pageLimitValidator(),
+  ultimateValidator
+];
+
+export const deleteAnswerValidation = [
+  idValidator('answer_id'),
+  ultimateValidator
+];
+
+export const likeAnswerValidation = [
+  idValidator('answer_id'),
+  ultimateValidator
+];
+
+export const unlikeAnswerValidation = [
+  idValidator('answer_id'),
+  ultimateValidator
+];
+
+export const reportAnswerValidation = [
+  idValidator('answer_id'),
   ultimateValidator
 ];

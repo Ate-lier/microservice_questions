@@ -6,11 +6,11 @@ import {
 
 const router = Router();
 
-router.get('/answers', getAnswers);
-router.post('/answers', postAnswer);
-router.delete('/answers/:answer_id', deleteAnswer);
-router.post('/answers/:answer_id/like', likeAnswer);
-router.put('/answers/:answer_id/unlike', unlikeAnswer);
-router.post('/answers/:answer_id/report', reportAnswer);
+router.get('/', getAnswers);
+router.post('/', postAnswer);
+router.delete('/:answer_id', deleteAnswer);
+router.post('/:answer_id/like', likeAnswer);
+router.put('/:answer_id/unlike', unlikeAnswer);
+router.post('/:answer_id/report', reportAnswer);
 
 export default router;
