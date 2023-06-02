@@ -19,8 +19,15 @@ export async function readAnswers(params: readAnswersParams): Promise<any> {
     [question_id, sortBy, pageLimit, pageOffset]
   )
 
-
   return answers;
+}
+
+// READ by answerer_id
+export async function readAnswer(id: number): Promise<any> {
+  const queryString = 'SELECT * FROM answers WHERE id = ?';
+  const [result] = await getPool().query<RowDataPacket[]>(queryString, [id]);
+
+  return result;
 }
 
 // Count number of answers for a specific question
@@ -72,3 +79,4 @@ export async function updateAnswerReported(id: number): Promise<any> {
 
   return result;
 }
+

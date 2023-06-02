@@ -41,5 +41,3 @@ export function getPool(): Pool {
 
   return pool;
 }
-
-

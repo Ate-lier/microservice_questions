@@ -5,11 +5,14 @@ async function test() {
     host: '127.0.0.1',
     user: 'yuheng',
     password: '12345',
-    database: 'atelier'
+    database: 'test'
   });
 
   try {
-    const result = await connection.query('select * from questions where id < 5');
+    const queryString = 'INSERT INTO test1 (name, age) VALUES ?';
+    const values = [['shen', 25], ['yuheng', 24], ['ted', 24]];
+    const result = await connection.query(queryString, [values]);
+
     console.log(result);
   } catch (err) {
     console.log(err.sqlMessage);

@@ -25,7 +25,7 @@ function idValidator(idField: string) {
     .notEmpty()
     .withMessage(`${idField} is required`)
     .isInt({ min: 1 })
-    .withMessage(`${idField} must be an integer larger than 1`)
+    .withMessage(`${idField} must be an integer greater and equal to 1`)
     .toInt();
 }
 
@@ -78,6 +78,13 @@ function pageLimitValidator() {
     .withMessage('Page limit must be a positive integer')
 }
 
+function answerPhotosValidator() {
+  return body('photos')
+    .optional()
+    .isArray({ max: 3})
+    .withMessage('Photos must be an array of length no more than 3')
+}
+
 
 // QUESTION ROUTE
 export const postQuestionValidation = [
@@ -124,6 +131,7 @@ export const postAnswerValidation = [
   bodyValidator(),
   nameValidator('answerer_name'),
   emailValidator('answerer_email'),
+  answerPhotosValidator(),
   ultimateValidator
 ];
 
@@ -154,3 +162,4 @@ export const reportAnswerValidation = [
   idValidator('answer_id'),
   ultimateValidator
 ];
+

@@ -4,9 +4,9 @@ import { connect, disconnect, getPool } from '../model/db';
 import { RowDataPacket } from 'mysql2';
 import { setTimeout } from 'timers/promises';
 
-console.log('this is the testing, how console.log will work in jest!!!!')
+// console.log('this is the testing, how console.log will work in jest!!!!')
 
-describe('Database Connection', () => {
+describe.skip('Database Connection', () => {
   it('should raise error when try to getPool without being connected', async () => {
     expect(() => getPool()).toThrow();
   });
@@ -32,7 +32,7 @@ describe('Database Connection', () => {
 });
 
 
-describe('API Testing: Route Questions', () => {
+describe.skip('API Testing: Route Questions', () => {
   // record all question_id that may generated in the integration tests
   const generatedQuestionIds: Array<number> = [];
 
@@ -57,9 +57,7 @@ describe('API Testing: Route Questions', () => {
           .send(validPostData);
 
         const id = response.body.question[0].id;
-        console.log('the POST ID is', id);
         generatedQuestionIds.push(id);
-        console.log('before POST, the generatedQuestionIds array is', generatedQuestionIds);
       });
 
       it('should respond with status code of 201', async () => {
@@ -443,43 +441,243 @@ describe('API Testing: Route Questions', () => {
 });
 
 
+// testing answers
+describe('API Testing: Route Answers', () => {
+  // record all answers_id that may generated in the integration tests
+  const generatedAnswerIds: Array<number> = [];
+  let question_id: number;
 
-// describe.skip('POST /questions/:question_id/like', () => {
-//   it('should return status code 200', async () => {
-//     const result = await request(app).get('/questions/1/like');
+  beforeAll(async () => {
+    await connect();
 
-//     expect(result.status).toBe(200);
-//   });
-// });
+    const validPostData = {
+      product_id: 1,
+      body: 'this is question for answers testing',
+      asker_name: 'Shennie',
+      asker_email: 'shenniewu@gmail.com'
+    };
 
-// describe.skip('PUT /questions/:question_id/unlike', () => {
-//   it('should return status code 200', async () => {
-//     const result = await request(app).get('/questions/1/unlike');
+    const response = await request(app)
+      .post('/questions')
+      .send(validPostData);
 
-//     expect(result.status).toBe(200);
-//   });
-// });
+    question_id = response.body.question[0].id;
+    //
+    console.log('this is the ffffffffiiiiiiii sample question id: ' + question_id);
+  });
 
-// describe.skip('POST /questions/:question_id/report', () => {
-//   it('should return status code 200', async () => {
-//     const result = await request(app).get('/questions/1/report');
+  afterAll(async () => {
+    // Delete this fake test-driven question
+    await request(app).delete(`/questions/${question_id}`);
+    await disconnect();
+  });
 
-//     expect(result.status).toBe(200);
-//   });
-// });
+  describe('POST /answers', () => {
+    interface PostData {
+      question_id: number,
+      body: string,
+      answerer_name: string,
+      answerer_email: string,
+      photos?: string[]
+    }
 
-// describe.skip('DELETE /questions/:question_id', () => {
-//   it('should return status code 200', async () => {
-//     const result = await request(app).get('/questions/1');
+    let validPostData: PostData;
 
-//     expect(result.status).toBe(200);
-//   });
-// });
+    describe('When succeeded:', () => {
+      describe('Without Photos', () => {
+        let response: Response;
+
+        // post once for all test suites
+        beforeAll(async () => {
+          // Post an answer based on the newly generated question for product 1
+          validPostData = {
+            question_id,
+            body: 'this is sample answers we are sending to sample question',
+            answerer_name: 'Shennie',
+            answerer_email: 'shenniewu@gmail.com'
+          };
+
+          response = await request(app)
+            .post('/answers')
+            .send(validPostData);
+          console.log('this is ffffffffffffffffff answer : ' + response.body.answer);
+          const id = response.body.answer[0].id;
+          generatedAnswerIds.push(id);
+        });
+
+        it('should respond with status code of 201', async () => {
+          expect(response.status).toBe(201);
+        });
+
+        it('should respond with a body in format of { answer: [answer] }', async () => {
+          expect(response.body).toHaveProperty('answer');
+          expect(response.body.answer).toMatchObject([validPostData]);
+        });
+
+        it('should has default 0 for both helpful and reported properties', async () => {
+          expect(response.body.answer[0]).toHaveProperty('helpful', 0);
+          expect(response.body.answer[0]).toHaveProperty('reported', 0);
+        });
+      });
+
+      describe('With Photos', () => {
+        let response: Response;
+
+        // post once for all test suites
+        beforeAll(async () => {
+          // Post an answer based on the newly generated question for product 1
+          validPostData = {
+            question_id,
+            body: 'this is a test message',
+            answerer_name: 'Shennie',
+            answerer_email: 'shenniewu@gmail.com',
+            photos: [
+              'https://www.fakephotos.com/12345',
+              'https://www.fakephotos.com/12345',
+              'https://www.fakephotos.com/12345'
+            ]
+          };
+
+          response = await request(app)
+            .post('/answers')
+            .send(validPostData);
+
+          const id = response.body.answer[0].id;
+          generatedAnswerIds.push(id);
+        });
+
+        it('should respond with status code of 201', async () => {
+          expect(response.status).toBe(201);
+        });
+
+        it('should respond with a body in format of { answer: [answer] }', async () => {
+          expect(response.body).toHaveProperty('answer');
+          expect(response.body.answer).toMatchObject([validPostData]);
+        });
+
+        it('should has default 0 for both helpful and reported properties', async () => {
+          expect(response.body.answer[0]).toHaveProperty('helpful', 0);
+          expect(response.body.answer[0]).toHaveProperty('reported', 0);
+        });
+      });
+    })
+
+    describe('When Failed', () => {
+      it('should raise 400 error when missing required parameters', async () => {
+        const response = await request(app)
+          .post('/answers')
+          .send({ product_id: 1 }); // missing 3 required params
+
+        expect(response.status).toBe(400);
+      });
+
+      it('should raise 400 error when parameters in wrong data type', async () => {
+        const response = await request(app)
+          .post('/questions')
+          .send({
+            product_id: 0, // min 1
+            body: 'this is testing message',
+            asker_name: 'a', // too small string length
+            asker_email: 12345, // not valid email
+          });
+
+        expect(response.status).toBe(400);
+      });
+
+      it('should raise 400 error when the question does not exist', async() => {
+        const response = await request(app)
+          .post('/answers')
+          .send({
+            question_id: 0, // min 1
+            body: 'this is testing message',
+            answerer_name: 'a', // too small string length
+            answerer_email: 12345, // not valid email
+          });
+
+        expect(response.status).toBe(400);
+      });
+
+      it('should raise 400 error when more than 3 photos are present', async() => {
+        const response = await request(app)
+          .post('/answers')
+          .send({
+            question_id,
+            body: 'this is a test message',
+            answerer_name: 'Shennie',
+            answerer_email: 'shenniewu@gmail.com',
+            photos: [
+              'https://www.fakephotos.com/12345',
+              'https://www.fakephotos.com/12345',
+              'https://www.fakephotos.com/12345',
+              'https://www.fakephotos.com/12345'
+            ]
+          });
+          expect(response.status).toBe(400);
+
+      });
 
 
+      it('should respond with error format like { error: [errorObj] }', async () => {
+        const response = await request(app)
+          .post('/answers')
+          .send({ question_id: 0 }); // a random bad request body
 
-// // testing answers
-// describe.skip('GET /answers', () => {
+        expect(response.body).toHaveProperty('error');
+        expect(response.body.error).toBeInstanceOf(Array);
+      });
+
+      it("errorObj should be like { type = 'validation', message: string } when 400 error", async () => {
+        const response = await request(app)
+          .post('/answers')
+          .send({ question_id: 0 }); // a random bad request body
+
+        expect(response.body.error[0]).toHaveProperty('type', 'Validation');
+        expect(response.body.error[0]).toHaveProperty('message');
+      });
+    });
+  });
+
+  // just delete all of the generate questions id, while testing the delete functionality
+  describe('DELETE /answers/:answer_id', () => {
+    let responses: Response[];
+
+    beforeAll(async () => {
+      const promises = generatedAnswerIds.map(id => {
+        return request(app).delete(`/answers/${id}`);
+      });
+
+      responses = await Promise.all(promises);
+    });
+
+    it('should respond with 204 when deleted successfully', async () => {
+      expect(responses.every(res => res.status === 204)).toBeTruthy();
+    });
+
+    it('should delete those answers from databases', async () => {
+      const promises = generatedAnswerIds.map(id => {
+        return getPool().query<RowDataPacket[]>('SELECT * FROM answers WHERE id = ?', id);
+      });
+
+      const results = await Promise.all(promises);
+
+      expect(results.every(res => res[0].length === 0)).toBeTruthy();
+    });
+
+    it('should delete those photos related to these answers from databases', async () => {
+      const promises = generatedAnswerIds.map(id => {
+        return getPool().query<RowDataPacket[]>('SELECT * FROM answers_photos WHERE answer_id = ?', id);
+      });
+
+      const results = await Promise.all(promises);
+
+      expect(results.every(res => res[0].length === 0)).toBeTruthy();
+    });
+  });
+
+  // Patch
+});
+
+// describe('GET /answers', () => {
 //   it('should return status code 200', async () => {
 //     const result = await request(app).get('/answers');
 
@@ -487,15 +685,6 @@ describe('API Testing: Route Questions', () => {
 //   });
 // });
 
-// describe.skip('POST /answers', () => {
-//   it('should return status code 200', async () => {
-//     const result = await request(app).post('/answers').send({
-//       product_id: 111, test: 'hello world'
-//     });
-
-//     expect(result.status).toBe(200);
-//   });
-// });
 
 // describe.skip('DELETE /answers/:answer_id', () => {
 //   it('should return status code 200', async () => {

@@ -3,3 +3,4 @@ dist/
 .env
 CSV/files/
 test_coverage/
+test.js
