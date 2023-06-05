@@ -22,7 +22,29 @@ function errorChecker(err: unknown) {
 
 
 export async function getAnswers(req: Request, res: Response, next: NextFunction): Promise<any> {
-  res.sendStatus(501);
+  try {
+    const { question_id, sortBy = 'helpful', currentPage = 1, pageLimit = 5 } = req.query;
+    const params = {
+      question_id: Number(question_id),
+      sortBy: sortBy as string,
+      currentPage: Number(currentPage),
+      pageLimit: Number(pageLimit)
+    };
+
+    const answers = await answerModel.readAnswers(params);
+    const answersCount = await answerModel.countAnswers(Number(question_id));
+
+    // For each answer, get its photos
+    for (let answer of answers) {
+      const photos = await photoModel.readPhotos(Number(answer.id));
+      answer.photos = photos.map((row: { url: string }) => row.url);
+    }
+
+    res.status(200).json({ answers, answersCount });
+  } catch (err) {
+    const errors = errorChecker(err);
+    next(new HttpError(errors, 500));
+  }
 }
 
 export async function postAnswer(req: Request, res: Response, next: NextFunction): Promise<any> {

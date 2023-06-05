@@ -4,9 +4,8 @@ import { connect, disconnect, getPool } from '../model/db';
 import { RowDataPacket } from 'mysql2';
 import { setTimeout } from 'timers/promises';
 
-// console.log('this is the testing, how console.log will work in jest!!!!')
 
-describe.skip('Database Connection', () => {
+describe('Database Connection', () => {
   it('should raise error when try to getPool without being connected', async () => {
     expect(() => getPool()).toThrow();
   });
@@ -32,7 +31,7 @@ describe.skip('Database Connection', () => {
 });
 
 
-describe.skip('API Testing: Route Questions', () => {
+describe('API Testing: Route Questions', () => {
   // record all question_id that may generated in the integration tests
   const generatedQuestionIds: Array<number> = [];
 
@@ -441,7 +440,6 @@ describe.skip('API Testing: Route Questions', () => {
 });
 
 
-// testing answers
 describe('API Testing: Route Answers', () => {
   // record all answers_id that may generated in the integration tests
   const generatedAnswerIds: Array<number> = [];
@@ -718,15 +716,227 @@ describe('API Testing: Route Answers', () => {
     });
   });
 
-  // describe('GET /answers', () => {
-  //   it('should return status code 200', async () => {
-  //     const result = await request(app).get('/answers');
+  describe('GET /answers', () => {
+    const allLikeCounts: Array<number> = [];
 
-  //     expect(result.status).toBe(200);
-  //   });
-  // });
+    beforeAll(async () => {
+      for (let i = 1; i <= 10; i++) {
+        // post fake data
+        const params = {
+          question_id,
+          body: `Sample Test No.${i}`,
+          answerer_name: `Shennie${i}`,
+          answerer_email: `shennie${i}@gmail.com`,
+          photos: [
+            'http://www.photos1.com',
+            'http://www.photos1.com'
+          ],
+        };
 
-  // just delete all of the generate questions id, while testing the delete functionality
+        const response = await request(app).post('/answers').send(params);
+
+        const answer_id = response.body.answer[0].id;
+        generatedAnswerIds.push(answer_id);
+
+        const likeCounts = Math.floor(Math.random() * 5);
+        allLikeCounts.push(likeCounts);
+
+        for (let i = 0; i < likeCounts; i++) {
+          await request(app).patch(`/answers/${answer_id}/like`);
+        }
+
+        if (i % 3 === 0) await setTimeout(1000);
+      }
+
+      allLikeCounts.sort((a, b) => b - a);
+    }, 60_000);
+
+    describe('When succeed:', () => {
+      it('should get a status code of 200', async () => {
+        const response = await request(app).get('/answers')
+          .query({
+            question_id,
+            sortBy: 'helpful',
+            currentPage: 1,
+            pageLimit: 5,
+          });
+
+        expect(response.status).toBe(200);
+      }, 60_000);
+
+      it('should get total answers counts for the requested question_id', async() => {
+        const response = await request(app).get('/answers')
+          .query({ question_id: question_id });
+
+        console.log(question_id + '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
+
+        expect(response.body).toHaveProperty('answersCount');
+        expect(response.body.answersCount).toBe(12);
+      }, 60_000);
+
+      it('should by default get 5 answers', async () => {
+        const response = await request(app).get('/answers')
+          .query({
+            question_id,
+            sortBy: 'helpful',
+            currentPage: 1,
+          });
+        expect(response.body.answers.length).toBe(5);
+      }, 60_000);
+
+      it('should by default sort by [helpful]', async() => {
+        const response = await request(app).get('/answers')
+          .query({
+            question_id,
+            currentPage: 1,
+            pageLimit: 5,
+          });
+
+        function checkSort (arr: any) {
+          for (let i = 1; i < arr.length; i++) {
+            if (arr[i].helpful > arr[i - 1].helpful) return false;
+          }
+          return true;
+        }
+
+        expect(checkSort(response.body.answers)).toBeTruthy();
+      }, 60_000);
+
+      it('should by default get the 1st page', async() => {
+        const response = await request(app).get('/answers')
+          .query({
+            question_id,
+            sortBy: 'helpful',
+            pageLimit: 5,
+          });
+
+        const currPage = response.body.answers.map((q: any) => q.helpful);
+        expect(currPage).toEqual(allLikeCounts.slice(0,5));
+      }, 60_000);
+
+      it('should get correct page limit when pageLimit parameter specified', async() => {
+        const response = await request(app).get('/answers')
+          .query({
+            question_id,
+            sortBy: 'helpful',
+            pageLimit: 3,
+            currentPage:1,
+          });
+
+        expect(response.body.answers.length).toBe(3);
+      }, 60_000);
+
+      it('should get correct page when switching current page', async() => {
+        const response = await request(app).get('/answers')
+          .query({
+            question_id,
+            sortBy: 'helpful',
+            pageLimit: 5,
+            currentPage: 2,
+          });
+
+        const currPage = response.body.answers.map((q: any) => q.helpful);
+        expect(currPage).toEqual(allLikeCounts.slice(5, 10));
+      }, 60_000);
+
+      it('should get nothing when currentPage exceed the last page', async() => {
+        const response = await request(app).get('/answers')
+          .query({
+            question_id,
+            sortBy: 'helpful',
+            pageLimit: 5,
+            currentPage: 10,
+          });
+
+        expect(response.body.answers.length).toEqual(0);
+      }, 60_000);
+
+      it('should sort by date_written when sortBy equals [date_written]', async() => {
+        const response = await request(app).get('/answers')
+          .query({
+            question_id,
+            sortBy: 'date_written',
+            pageLimit: 5,
+            currentPage: 1,
+          });
+
+        function checkSort (arr: any) {
+          for (let i = 1; i < arr.length; i++) {
+            if (arr[i].date_written > arr[i - 1].date_written) return false;
+          }
+          return true;
+        }
+
+        expect(checkSort(response.body.answers)).toBeTruthy();
+      }, 60_000);
+
+      it('should get photos as an Array no matter if the question has photos or not', async() => {
+        const response = await request(app).get('/answers')
+          .query({
+            question_id,
+            sortBy: 'date_written',
+            pageLimit: 5,
+            currentPage: 1,
+          });
+
+        response.body.answers.forEach((ans: any) => {
+          expect(ans).toHaveProperty('photos');
+          expect(Array.isArray(ans.photos)).toBeTruthy();
+          expect(ans.photos.every((x: any) => typeof x === 'string')).toBeTruthy();
+        });
+      })
+    });
+
+    describe('When failed', () => {
+      it('should raise 400 error when missing required parameters', async () => {
+        const response = await request(app)
+          .get('/answers')
+          .query({
+            // missing required question_id parameter
+            sortBy: 'helpful',
+            currentPage: 1,
+            pageLimit: 5
+          });
+
+        expect(response.status).toBe(400);
+      }, 60_000);
+
+      it('should raise 400 error when parameters in wrong data type', async () => {
+        const response = await request(app)
+          .get('/answers')
+          .query({
+            question_id: 1,
+            sortBy: 'thumbUp', // must be 'helpful' or 'date_written'
+            currentPage: 0, // page must integer bigger than one
+            pageLimit: 'pageLimist must be an Integer'
+          });
+
+        expect(response.status).toBe(400);
+      }, 60_000);
+
+      it('should respond with error format like { error: [errorObj] }', async () => {
+        const response = await request(app)
+          .get('/answers')
+          .query({ question_id: 0 }); // a random bad request body
+
+        expect(response.body).toHaveProperty('error');
+        expect(response.body.error).toBeInstanceOf(Array);
+      }, 60_000);
+
+      it("errorObj should be like { type = 'validation', message: string } when 400 error", async () => {
+        const response = await request(app)
+          .get('/answers')
+          .query({ question_id: 0 }); // a random bad request body
+
+        expect(response.body.error[0]).toHaveProperty('type', 'Validation');
+        expect(response.body.error[0]).toHaveProperty('message');
+      }, 60_000);
+    });
+
+  });
+
+
+  // just delete all of the generate answers id, while testing the delete functionality
   describe('DELETE /answers/:answer_id', () => {
     let responses: Response[];
 
