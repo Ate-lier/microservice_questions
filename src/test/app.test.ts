@@ -462,8 +462,6 @@ describe('API Testing: Route Answers', () => {
       .send(validPostData);
 
     question_id = response.body.question[0].id;
-    //
-    console.log('this is the ffffffffiiiiiiii sample question id: ' + question_id);
   });
 
   afterAll(async () => {
@@ -500,7 +498,7 @@ describe('API Testing: Route Answers', () => {
           response = await request(app)
             .post('/answers')
             .send(validPostData);
-          console.log('this is ffffffffffffffffff answer : ' + response.body.answer);
+
           const id = response.body.answer[0].id;
           generatedAnswerIds.push(id);
         });
@@ -637,6 +635,97 @@ describe('API Testing: Route Answers', () => {
     });
   });
 
+  describe('PATCH /answers/:answer_id/like', () => {
+    let answer_id: number;
+
+    // Grab the newest generated answer_id
+    beforeAll(async () => {
+      answer_id = generatedAnswerIds.at(-1) as number;
+    });
+
+    it('should respond with 2xx status code when succeed', async () => {
+      const response = await request(app)
+        .patch(`/answers/${answer_id}/like`);
+
+      expect(response.status).toBeGreaterThanOrEqual(200);
+      expect(response.status).toBeLessThan(300);
+    });
+
+    it('should increase the answer helpful by 1', async () => {
+      const [answers] = await getPool()
+        .query<RowDataPacket[]>(`SELECT helpful FROM answers WHERE id = ?`, answer_id);
+
+      expect(answers[0].helpful).toBe(1);
+    });
+  });
+
+  describe('PATCH /answers/:answer_id/unlike', () => {
+    // reuse the last answer
+    let answer_id: number;
+
+    beforeAll(() => {
+      answer_id = generatedAnswerIds.at(-1) as number;
+    });
+
+    it('should respond with 2xx status code when succeed', async () => {
+      // first of all, make sure this answer_id has 1 helpful
+      const [answers] = await getPool()
+        .query<RowDataPacket[]>(`SELECT helpful FROM answers WHERE id = ?`, answer_id);
+
+      expect(answers[0].helpful).toBe(1);
+
+      const response = await request(app)
+        .patch(`/answers/${answer_id}/unlike`);
+
+      expect(response.status).toBeGreaterThanOrEqual(200);
+      expect(response.status).toBeLessThan(300);
+    });
+
+    it('should minus the question helpful by 1', async () => {
+      const [questions] = await getPool()
+        .query<RowDataPacket[]>(`SELECT helpful FROM questions WHERE id = ?`, question_id);
+
+      expect(questions[0].helpful).toBe(0);
+    });
+  });
+
+  describe('PATCH /answers/:answer_id/report', () => {
+    let answer_id: number;
+
+    beforeAll(() => {
+      answer_id = generatedAnswerIds.at(-1) as number;
+    });
+
+    it('should respond with 2xx status code when succeed', async () => {
+      // first of all, make sure this answer_id has 0 reported
+      const [answers] = await getPool()
+        .query<RowDataPacket[]>(`SELECT reported FROM answers WHERE id = ?`, answer_id);
+
+      expect(answers[0].reported).toBe(0);
+
+      const response = await request(app)
+        .patch(`/answers/${answer_id}/report`);
+
+      expect(response.status).toBeGreaterThanOrEqual(200);
+      expect(response.status).toBeLessThan(300);
+    });
+
+    it('should increase the answer reported by 1', async () => {
+      const [answers] = await getPool()
+        .query<RowDataPacket[]>(`SELECT reported FROM answers WHERE id = ?`, answer_id);
+
+      expect(answers[0].reported).toBe(1);
+    });
+  });
+
+  // describe('GET /answers', () => {
+  //   it('should return status code 200', async () => {
+  //     const result = await request(app).get('/answers');
+
+  //     expect(result.status).toBe(200);
+  //   });
+  // });
+
   // just delete all of the generate questions id, while testing the delete functionality
   describe('DELETE /answers/:answer_id', () => {
     let responses: Response[];
@@ -673,50 +762,8 @@ describe('API Testing: Route Answers', () => {
       expect(results.every(res => res[0].length === 0)).toBeTruthy();
     });
   });
-
-  // Patch
 });
 
-// describe('GET /answers', () => {
-//   it('should return status code 200', async () => {
-//     const result = await request(app).get('/answers');
-
-//     expect(result.status).toBe(200);
-//   });
-// });
-
-
-// describe.skip('DELETE /answers/:answer_id', () => {
-//   it('should return status code 200', async () => {
-//     const result = await request(app).delete('/answers/1');
-
-//     expect(result.status).toBe(200);
-//   });
-// });
-
-// describe.skip('POST /answers/:answer_id/like', () => {
-//   it('should return status code 200', async () => {
-//     const result = await request(app).post('/answers/1/like');
-
-//     expect(result.status).toBe(200);
-//   });
-// });
-
-// describe.skip('PUT /answers/:answer_id/unlike', () => {
-//   it('should return status code 200', async () => {
-//     const result = await request(app).put('/answers/1/unlike').send({ test: 'hello world'});
-
-//     expect(result.status).toBe(200);
-//   });
-// });
-
-// describe.skip('POST /answers/:answer_id/report', () => {
-//   it('should return status code 200', async () => {
-//     const result = await request(app).post('/answers/1/report').send({ test: 'hello world'});
-
-//     expect(result.status).toBe(200);
-//   });
-// });
 
 
 

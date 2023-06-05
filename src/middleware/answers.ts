@@ -82,13 +82,58 @@ export async function deleteAnswer(req: Request, res: Response, next: NextFuncti
 }
 
 export async function likeAnswer(req: Request, res: Response, next: NextFunction): Promise<any> {
-  res.sendStatus(501);
+  try {
+    const { answer_id } = req.params;
+    const result = await answerModel.updateAnswerHelpful(parseInt(answer_id), true);
+
+    if (result.affectedRows === 0) {
+      throw new Error('Like Failed');
+    }
+
+    // Might Refactor to "204 No Content"
+    const updatedAnswer = await answerModel.readAnswer(parseInt(answer_id));
+    res.status(200).json({ answer: updatedAnswer });
+
+  } catch (err) {
+    const errors = errorChecker(err);
+    next(new HttpError(errors, 500));
+  }
 }
 
 export async function unlikeAnswer(req: Request, res: Response, next: NextFunction): Promise<any> {
-  res.sendStatus(501);
+  try {
+    const { answer_id } = req.params;
+    const result = await answerModel.updateAnswerHelpful(parseInt(answer_id), false);
+
+    if (result.affectedRows === 0) {
+      throw new Error('Unlike Failed');
+    }
+
+    // Might Refactor to "204 No Content"
+    const updatedAnswer = await answerModel.readAnswer(parseInt(answer_id));
+    res.status(200).json({ answer: updatedAnswer });
+
+  } catch (err) {
+    const errors = errorChecker(err);
+    next(new HttpError(errors, 500));
+  }
 }
 
 export async function reportAnswer(req: Request, res: Response, next: NextFunction): Promise<any> {
-  res.sendStatus(501);
+  try {
+    const { answer_id } = req.params;
+    const result = await answerModel.updateAnswerReported(parseInt(answer_id));
+
+    if (result.affectedRows === 0) {
+      throw new Error('Report Failed');
+    }
+
+    // Might Refactor to "204 No Content"
+    const updatedAnswer = await answerModel.readAnswer(parseInt(answer_id));
+    res.status(200).json({ answer: updatedAnswer });
+
+  } catch (err) {
+    const errors = errorChecker(err);
+    next(new HttpError(errors, 500));
+  }
 }
